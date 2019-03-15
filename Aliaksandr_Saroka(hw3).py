@@ -12,40 +12,43 @@ def clear():  # Очистка консоли
 
 users = ['Петр', 'Андрей', 'Иоан', ]
 iter = 0
+
 mess = '     Можно вводить только цифры (в пределах количества \
 \n     пользователей) или большие латинские D и N '
 
 while True:
     clear()
     lenList = len(users)
-    possibleKeys = ''
+    possibleKeys = ''  # Переменная для возможных вариантов ответа
     for i in range(0, lenList):
-        if i == lenList-1:
-            print(str(i+1)+'. '+users[i]+'\n')
-        else:
-            print(str(i+1)+'. '+users[i])
+        print(str(i+1)+'. '+users[i])
         possibleKeys += (str(i+1)+' ')
+
     possibleKeys += ' N D'
     possibleKeys = possibleKeys.split()
-    # print(possibleKeys)
+
     print('Выбрать пользователя: (1, 2, 3...)')
-    print('Новый пользователь: N     удалить пользователя: D')
-    if iter > 0:
+    print('Новый пользователь - N;     удалить пользователя - D')
+    if iter > 0:  # Если в первый раз ввод с ошибкой, выводится подсказка mess
         print(mess)
     key = input()
 
     iter += 1
     if key in possibleKeys:
-        if key.isdigit():
+        if key.isdigit():  # Если введен номер, выбираем пользователя
             name = users[int(key)-1]
-            break
-        elif key == "D":  # Удаление пользователя
-            if lenList > 1:
+            break  # Выход из цикла ввода данных и запуск калькулятора
+
+        # *********************** Блок удаление пользователя
+
+        elif key == "D":
+            if lenList > 1:  # Не позволяем полность очистить список
                 while True:
                     delUser = input('Номер удаляемого пользователя: ')
-                    if delUser.isdigit() and int(delUser) <= lenList:
-                        while True:
-                            ques = 'Удалить пользователя  ' + users[int(
+                    if delUser.isdigit() and int(delUser) <= lenList:  # Должна
+                        # быть введена цифра в пределах номеров пользователей
+                        while True:  # Запрорс подтверждения на удаление
+                            ques = 'Удалить пользователя?  ' + users[int(
                               delUser) - 1] + '    Y/Nо - любое значение:  '
                             answer = input(ques)
                             if answer.strip() == 'Y':
@@ -56,18 +59,22 @@ while True:
             else:
                 print('Хоть один должен остаться! Нажмите Enter...')
                 input()
-# Конец блока удаления пользователя
+        #  ******************** Конец блока удаления пользователя
 
-        else:  # Ввод нового пользователя
+        #  ******** Блок вставки нового пользователя
+
+        else:
             newName = ''
             while newName == '':
                 newName = input('Введите имя нового пользователя ')
-            while True:
-                answer = input('Добавить Y/No - любое значение:  ')
+            while True:  # Запрорс подтверждения на ввод нового
+                answer = input('Добавить?  Y/No - любое значение:  ')
                 if answer.strip() == 'Y':
                     users.append(newName)
                 iter = 0
-                break
+                break  # Выход из цикла Y/No
+
+        #  ******** Конец блока вставки нового пользователя
 
 # name = input("Введите Ваше имя: ")
 
