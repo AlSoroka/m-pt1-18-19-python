@@ -15,10 +15,7 @@
 4. Поскольку, функции удаления и добавления вызываются изнутри меню,
    для них логично применение синтаксического сахара @...
    Точка запуска меню известна и логично было бы применить конструкцию
-   имя=декоратор(меню) или в моих переменных
-   name=decorateForMenu(showMenu), но у меня не получилось.
-
-   Может Вы подскажите?
+   имя=декоратор(меню).
 
 
 
@@ -61,7 +58,7 @@ def decorateForMenu(Menu):
     return verifyAuthorization
 
 
-@decorateForMenu
+#  @decorateForMenu
 def showMenu():
     iter = 0
     mess = '     Можно вводить только цифры (в пределах количества \
@@ -200,7 +197,9 @@ name = ''
 authorization = False
 
 while name == '':
-    # print('Пользователь авторизован - ',authorization)
-    # input()
-    name = showMenu()
-print(name)
+    print('\nПользователь авторизован - ', authorization, '\n')
+    input()
+    name = decorateForMenu(showMenu)
+    #  name = showMenu()
+#  print(name)
+print(name())

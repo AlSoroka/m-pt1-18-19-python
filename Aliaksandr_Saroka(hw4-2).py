@@ -53,7 +53,7 @@ def decorateForMenu(Menu):
     return verifyAuthorization
 
 
-@decorateForMenu
+# @decorateForMenu
 def showMenu():
     iter = 0
 
@@ -205,7 +205,7 @@ authorization = False
 while name == '':
     print('\nПользователь авторизован - ', authorization, '\n')
     input()
-#    name=decorateForMenu(showMenu())
-#    name=decorateForMenu(showMenu)
-    name = showMenu()
-print(name)
+    name = decorateForMenu(showMenu)
+    #  name = showMenu()
+#  print(name)
+print(name())
