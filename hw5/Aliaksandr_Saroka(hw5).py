@@ -1,131 +1,103 @@
-''' Простейший парсинг scsv-файла.
-По умолчанию использует:
-в качестве символа-разделителя ";" semi-colon
-Не реализованы:
-1. Обработка разрыва строки внутри поля
-2. Обработка экранированных разделительных символов и кавычек'''
-
 import os
 
+def separateField (line):
+    ''' Разбиваем файл на поля, заменяем  разрывы строк внутри полей
+        на пробелы. Символы-разделители:  ";" и [Tab]  '''
+    #sepSymbols={',', ';', chr(9)}
+    sepSymbols={';', chr(9)}
+    firstCommas=False
+    # Если firstCommas=True, то это значит, что   уже открыты кавычки
+    # и разделительный символ или разрыв строки - это просто часть поля
 
-def GetSeparatePointWithCommas(sepLine):
-    '''
-    Формируем массив координат разделителей в строках с кавычками
-    символы-разделители, находящиеся внутри кавычек как разделители
-    не обрабатываются.
+    field=''
 
-    Возвращает список положений разделителя ";" в принимаемой строке
-    '''
+    for c in line:
+        firstCommas = not firstCommas if c=='"' else firstCommas
 
-    commasNum = sepLine.count('"')  # Находим количество вхождений кавычек
+        if (c in sepSymbols) and firstCommas:
+            field+=c
+        elif (c in sepSymbols) and not firstCommas or ord(c)==1:
 
-    if commasNum % 2 > 0:
-        print('Присутствуют не закрытые кавычки. Не парсится')
-        exit
+            fieldValue.append(field)
+            field=''
 
+        elif ord(c)==10 and firstCommas:
+            field+=' ' # Если разрыв внутри поля, заменяем на пробел
 
-#  Находим координаты кавычек в строке
-    commasCoord = []
-    for i in range(0, len(sepLine)-1):
-        if line[i] == '"':
-            commasCoord.append(i)
-
-#  Находим координаты точек-с-запятой в строке
-    semiColonCoord = []
-    for i in range(0, len(sepLine)-1):
-        if line[i] == ';':
-            semiColonCoord.append(i)
-# Список индексов точек-с-запятой, которые будут исключены
-    forDel = []
-
-    for i in range(0, len(semiColonCoord)-1):
-        k = 0
-        while k <= len(commasCoord)-2:
-            if semiColonCoord[i] > commasCoord[k] and \
-             semiColonCoord[i] < commasCoord[k+1]:
-                forDel.append(i)  # Если точка-с-запятой между кавычек
-            k += 2
-
-    for i in forDel:
-        semiColonCoord.pop(i)
-
-    # Т. к. Последнее поле не закрывается разделителем
-    semiColonCoord.append(len(sepLine)-1)
-    return semiColonCoord
-
-
-def GetSeparatePointWithoutCommas(sepLine):
-    # Формируем массив координат разделителей в строках кавычек
-
-    #  Находим координаты точек-с-запятой в строке
-    semiColonCoord = []
-    for i in range(0, len(sepLine)-1):
-        if line[i] == ';':
-            semiColonCoord.append(i)
-    # Т. к. Последнее поле не закрывается разделителем
-    semiColonCoord.append(len(sepLine)-1)
-    return semiColonCoord
+        elif ord(c)==10 and not firstCommas:
+            fieldValue.append(field)
+            field=''
+            break
+            return
+        else:
+            field+=c
+    return # Функция возвращает строку разбитую на поля в списке fieldValue
 
 
 path = ''
-fileIn = r'Книга3.csv'
-fileOut = r'Книга3.json'
+fileIn = 'Книга5.csv'
+fileOut = fileIn[:fileIn.find('.')+1]+'json'
 
-with open(os.path.join(path, fileIn), 'r') as fp:
-    lineNum = 1
-    lineCount = sum(1 for line in fp)
-    input(lineCount)
-    fp.seek(0)
+lineNum=1 # Предполагаем, что первая строка содержит имена полей
 
-    for line in fp:
-        if line.count('"') > 0:
-            breakPoint = GetSeparatePointWithCommas(line)
-        else:
-            breakPoint = GetSeparatePointWithoutCommas(line)
+with open(os.path.join(path, fileIn), 'r') as fi:
 
-        if lineNum == 1:
-            fieldName = []  # Инициализируем массив имен полей
-            numField = len(breakPoint)
+    for line in fi:
+        fieldValue=[]
+        separateField(line) # Функция возвращает строку разбитую на поля в списке fieldValue
+#******************************************************************************
+        # Проверяем совпадает ли число столбцов данных с заголовком.
+        if lineNum>1 and fieldCount:
+            if len(fieldValue) != fieldCount:
+                print('В файле не совпадает количество столбцов данных с заголовками')
+                if not fo.closed:
+                    fo.seek(0)
+                    fo.write ('Файл не сформирован или сформирован с ошибками')
+                    fo.close()
+                    exit(1)
 
-        fieldValue = []  # Инициализируем массив значений
-
-        print(breakPoint)
-        for i in range(0, numField-1):
-            if i == 0:
-                fName = line[:breakPoint[i]]
-            elif i == numField-1:
-                fName = line[breakPoint[i]:]
-            else:
-                fName = line[breakPoint[i]+1:breakPoint[i+1]]
-                ''' Удаляем концевые пробелы, кавычки, заменяем сдвоенные
-                 кавычки одинарными и экранируем их
-                 Проверяем и удаляем концевые запятые т. к.
-                 будет экспорт в JSON '''
-            fName = fName.replace('""', '"').strip('"'). \
+#******************************************************************************
+        for i  in range(len(fieldValue)):
+            ''' Удаляем концевые пробелы, кавычки, заменяем сдвоенные
+                кавычки одинарными и экранируем их'''
+            fieldValue[i] = fieldValue[i].replace('""', '"').strip('"'). \
                 replace('"', '\\"').strip().strip(',').strip()
-            if lineNum == 1:
-                fieldName.append(fName)
-            else:
-                fieldValue.append(fName)
-        if lineNum == 1:
+
+            if lineNum==1: # Все имена полей помещаем в кавычки
+                fieldValue[i]='"'+fieldValue[i]+'"'
+            else: # Значения полей помещаем в кавычки, если они не цифровые
+
+                if not fieldValue[i].isdigit():
+                    fieldValue[i]='"'+fieldValue[i]+'"'
+
+#******************************************************************************
+        if lineNum==1:
+            fieldName = fieldValue[:]  # Формируем список имен полей
+            fieldCount=len(fieldName)
             fo = open(os.path.join(path, fileOut), 'w')
             fo.write('[')
         else:
-            fo.write('{')
-            for i in range(0, numField-1):
-                print('Номер поля ', i, '   Количество полей ', numField-1)
+            jsonString='{'
+            for i  in range(len(fieldValue)):
 
-                if i == (numField-2):
-                    print('Ура')
-                    fo.write('"'+fieldName[i]+'":'+fieldValue[i])
+                jsonString+=fieldName[i]+':'+fieldValue[i]
+                if i<len(fieldValue)-1:
+                    jsonString+=','
                 else:
-                    fo.write('"'+fieldName[i]+'":'+fieldValue[i]+',')
-        if lineNum == lineCount:
-            fo.write('}')
-        elif lineNum == 1:
-            pass
-        else:
-            fo.write('},')
-        lineNum += 1
+                    jsonString+='},'
+            fo.write(jsonString)
+
+        lineNum+=1
+    fo.seek(fo.tell()-1) # Удаляем последнюю запятую
     fo.write(']')
     fo.close()
+
+
+
+
+
+
+
+
+
+
